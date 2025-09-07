@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Pokémon Viewer</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f0f4f8;
+        text-align: center;
+        padding: 20px;
+      }
+
+      h1 {
+        color: #ff4757;
+      }
+
+      input,
+      button {
+        padding: 8px 12px;
+        margin: 5px;
+        font-size: 16px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+      }
+
+      button {
+        background: #2ed573;
+        color: white;
+        border: none;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+
+      button:hover {
+        background: #1eae60;
+      }
+
+      .pokemon-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+      }
+
+      .card {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 10px;
+        transition: 0.3s;
+      }
+
+      .card:hover {
+        transform: scale(1.05);
+      }
+
+      img {
+        width: 150px;
+        height: auto;
+      }
+
+      .name {
+        font-weight: bold;
+        margin-top: 5px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h1>Pokémon Viewer</h1>
+    <input type="number" id="startId" placeholder="Nhập ID bắt đầu" />
+    <button onclick="loadPokemons()">Xem Pokémon</button>
+    <div id="loading-message"></div>
+    <div id="message-box"></div>
+    <div id="message-text"></div>
+    <div class="pokemon-container" id="pokemonContainer"></div>
+
+    <script src="test_chitiet_API.js">
+      
+    </script>
+  </body>
+</html>
