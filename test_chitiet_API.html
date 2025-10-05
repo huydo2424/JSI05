@@ -2,7 +2,7 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
-    <title>Pokémon Viewer</title>
+    <title>Pokémon Viewer + Firebase Auth</title>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -10,11 +10,9 @@
         text-align: center;
         padding: 20px;
       }
-
       h1 {
         color: #ff4757;
       }
-
       input,
       button {
         padding: 8px 12px;
@@ -23,7 +21,6 @@
         border-radius: 8px;
         border: 1px solid #ccc;
       }
-
       button {
         background: #2ed573;
         color: white;
@@ -31,18 +28,15 @@
         cursor: pointer;
         transition: 0.2s;
       }
-
       button:hover {
         background: #1eae60;
       }
-
       .pokemon-container {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
         gap: 15px;
         margin-top: 20px;
       }
-
       .card {
         background: white;
         border-radius: 12px;
@@ -50,34 +44,148 @@
         padding: 10px;
         transition: 0.3s;
       }
-
       .card:hover {
         transform: scale(1.05);
       }
-
       img {
         width: 150px;
         height: auto;
       }
-
       .name {
         font-weight: bold;
         margin-top: 5px;
+      }
+      .auth-box {
+        margin-bottom: 20px;
+        background: #fff;
+        display: inline-block;
+        padding: 15px;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
       }
     </style>
   </head>
 
   <body>
-    <h1>Pokémon Viewer</h1>
-    <input type="number" id="startId" placeholder="Nhập ID bắt đầu" />
-    <button onclick="loadPokemons()">Xem Pokémon</button>
-    <div id="loading-message"></div>
-    <div id="message-box"></div>
-    <div id="message-text"></div>
-    <div class="pokemon-container" id="pokemonContainer"></div>
+    <h1>Pokémon Viewer + Firebase Auth</h1>
 
-    <script src="test_chitiet_API.js">
-      
+    <div class="auth-box">
+      <h3>Đăng ký / Đăng nhập</h3>
+      <input type="email" id="email" placeholder="Email" />
+      <input type="password" id="password" placeholder="Mật khẩu" />
+      <button id="registerBtn">Đăng ký</button>
+      <button id="loginBtn">Đăng nhập</button>
+      <p id="authMessage"></p>
+    </div>
+
+    <div>
+      <input type="number" id="startId" placeholder="Nhập ID bắt đầu" />
+      <button onclick="loadPokemons()">Xem Pokémon</button>
+    </div>
+
+    <div id="pokemonContainer" class="pokemon-container"></div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+      // Import Firebase core + Authentication
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+      import {
+        getAuth,
+        createUserWithEmailAndPassword,
+        signInWithEmailAndPassword,
+        onAuthStateChanged,
+        signOut,
+      } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+
+      // Cấu hình Firebase
+      const firebaseConfig = {
+        apiKey: "AIzaSyAOV-TWPLY37Bhz5vnAQ-Q36RxEZc4rvJU",
+        authDomain: "quanghuy-jsi2025.firebaseapp.com",
+        projectId: "quanghuy-jsi2025",
+        storageBucket: "quanghuy-jsi2025.firebasestorage.app",
+        messagingSenderId: "139932063285",
+        appId: "1:139932063285:web:6f3fda1713413d1925837c",
+      };
+
+      // Khởi tạo Firebase
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      console.log("✅ Firebase đã kết nối thành công!");
+
+      // --- AUTH LOGIC ---
+      const emailInput = document.getElementById("email");
+      const passwordInput = document.getElementById("password");
+      const messageBox = document.getElementById("authMessage");
+
+      document.getElementById("registerBtn").addEventListener("click", async () => {
+        try {
+          const userCredential = await createUserWithEmailAndPassword(
+            auth,
+            emailInput.value,
+            passwordInput.value
+          );
+          messageBox.innerText = "🎉 Đăng ký thành công!";
+          console.log("User registered:", userCredential.user);
+        } catch (error) {
+          messageBox.innerText = "❌ " + error.message;
+        }
+      });
+
+      document.getElementById("loginBtn").addEventListener("click", async () => {
+        try {
+          const userCredential = await signInWithEmailAndPassword(
+            auth,
+            emailInput.value,
+            passwordInput.value
+          );
+          messageBox.innerText = "✅ Đăng nhập thành công!";
+          console.log("User logged in:", userCredential.user);
+        } catch (error) {
+          messageBox.innerText = "❌ " + error.message;
+        }
+      });
+
+      onAuthStateChanged(auth, (user) => {
+        if (user) {
+          console.log("Người dùng hiện tại:", user.email);
+        } else {
+          console.log("Chưa có ai đăng nhập");
+        }
+      });
+
+      // --- POKÉMON FETCH ---
+      async function loadPokemons() {
+        const pokemonContainer = document.getElementById("pokemonContainer");
+        pokemonContainer.innerHTML = "";
+        const startId = parseInt(document.getElementById("startId").value);
+
+        if (isNaN(startId) || startId <= 0) {
+          pokemonContainer.innerHTML = "<p>⚠️ Vui lòng nhập ID hợp lệ!</p>";
+          return;
+        }
+
+        for (let i = startId; i < startId + 20; i++) {
+          try {
+            const response = await fetch(`https://pokeapi.co/api/v2/pokemon/${i}`);
+            if (!response.ok) throw new Error("Không tìm thấy Pokémon ID: " + i);
+            const pokemon = await response.json();
+            const name = pokemon.name.charAt(0).toUpperCase() + pokemon.name.slice(1);
+
+            const div = document.createElement("div");
+            div.className = "card";
+            div.innerHTML = `
+              <img src="${pokemon.sprites.front_default}" alt="${name}">
+              <div class="name">${name}</div>
+              <p>ID: ${pokemon.id}</p>
+            `;
+            pokemonContainer.appendChild(div);
+          } catch (e) {
+            console.warn(e.message);
+          }
+        }
+      }
+
+      window.loadPokemons = loadPokemons;
     </script>
   </body>
 </html>
